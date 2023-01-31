@@ -19,6 +19,10 @@ public class ConexionSql {
     
     private Connection conexion ;
 
+    public Connection devolverConecxion(){
+        return conexion;
+    }
+
     public ConexionSql(String dbURL, String usuario, String password) throws SQLException {
         
         conexion = DriverManager.getConnection(dbURL, usuario, password);
