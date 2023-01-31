@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="449.0" prefWidth="725.0" stylesheets="@../css/DarkTheme.css" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="view.VistaPrincipalController">
+   <top>
+      <MenuBar BorderPane.alignment="CENTER">
+        <menus>
+          <Menu mnemonicParsing="false" text="%men.archivo">
+            <items>
+              <MenuItem mnemonicParsing="false" onAction="#abrirXML" text="%xml.abrir" />
+                  <MenuItem mnemonicParsing="false" onAction="#guardarComo" text="%xml.guardar" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="%men.editar">
+            <items>
+              <MenuItem mnemonicParsing="false" text="%opc.edito" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="%men.idioma">
+            <items>
+              <MenuItem mnemonicParsing="false" onAction="#idiomaEs" text="%idm.español" />
+                  <MenuItem mnemonicParsing="false" onAction="#idiomaEn" text="%idm.ingles" />
+            </items>
+          </Menu>
+            <Menu mnemonicParsing="false" text="%men.consulta">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#llamarConsultaDinamica" text="%men.consultaDinamica" />
+              </items>
+            </Menu>
+            <Menu mnemonicParsing="false" text="%men.informes">
+               <items>
+                  <MenuItem mnemonicParsing="false" onAction="#llamarConsultaDinamica" text="%men.consultaDinamica" />
+               </items>
+            </Menu>
+        </menus>
+      </MenuBar>
+   </top>
+</BorderPane>
