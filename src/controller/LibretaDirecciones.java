@@ -1,26 +1,17 @@
 package controller;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.*;
 import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartDocument;
@@ -43,6 +34,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.Persona;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.view.JasperViewer;
 import util.ConexionSql;
 import view.EditarPersonaController;
 import view.VistaConsultaController;
@@ -140,7 +138,7 @@ public class LibretaDirecciones extends Application {
         
         //Cargo el layout principal a partir de la vista VistaPrincipal.fxml
         FXMLLoader loader = new FXMLLoader();
-        URL location = LibretaDirecciones.class.getResource("../view/VistaPrincipal.fxml");
+        URL location = LibretaDirecciones.class.getResource("/view/VistaPrincipal.fxml");
         loader.setResources(vistaBundle);
         loader.setLocation(location);
         try {
@@ -162,7 +160,7 @@ public class LibretaDirecciones extends Application {
 	        
 	        //Cargo la vista persona a partir de VistaPersona.fxml
 	        FXMLLoader loader = new FXMLLoader();
-	        URL location = LibretaDirecciones.class.getResource("../view/VistaPersona.fxml");
+	        URL location = LibretaDirecciones.class.getResource("/view/VistaPersona.fxml");
 	        loader.setResources(vistaBundle);
 	        loader.setLocation(location);
 	        try {
@@ -185,7 +183,7 @@ public class LibretaDirecciones extends Application {
         
         //Cargo la vista persona a partir de VistaPersona.fxml
         FXMLLoader loader = new FXMLLoader();
-        URL location = LibretaDirecciones.class.getResource("../view/EditarPersona.fxml");
+        URL location = LibretaDirecciones.class.getResource("/view/EditarPersona.fxml");
         loader.setResources(vistaBundle);
         loader.setLocation(location);
         Parent editarPersona; // creada porque me daba error en editarPersona!!!!!!!!
@@ -220,7 +218,7 @@ public class LibretaDirecciones extends Application {
     public void consultaDinamica() {
     	//Cargo la vista persona a partir de VistaConsulta.fxml
         FXMLLoader loader = new FXMLLoader();
-        URL location = LibretaDirecciones.class.getResource("../view/VistaConsulta.fxml");
+        URL location = LibretaDirecciones.class.getResource("/view/VistaConsulta.fxml");
         loader.setResources(vistaBundle);
         loader.setLocation(location);
         Parent VistaConsulta = null; // creada porque me daba error en editarPersona!!!!!!!!
@@ -310,82 +308,94 @@ public class LibretaDirecciones extends Application {
             e.printStackTrace();
         }
     }
-    
-//    public File getRutaArchivoPersonas() {
-//    	Preferences prefs = Preferences.userNodeForPackage(LibretaDirecciones.class);
-//    	String rutaArchivo = prefs.get("rutaArchuivo", null);
-//    	
-//    	if(rutaArchivo != null) {
-//    		
-//    	}
-//    }
-    
-    public void guardarPersonas (File archivo) throws Exception{
-   	 	XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
-        // create XMLEventWriter
-        XMLEventWriter eventWriter = outputFactory.createXMLEventWriter(new FileOutputStream(archivo.getAbsolutePath()), "ISO-8859-1");
-        // create an EventFactory
-        XMLEventFactory eventFactory = XMLEventFactory.newInstance();
-        XMLEvent end = eventFactory.createDTD("\n");
-        // create and write Start Tag
-        StartDocument startDocument = eventFactory.createStartDocument("iso-8859-1", "1.0", true);
-        eventWriter.add(startDocument);
-        eventWriter.add(end);
 
-        // create config open tag
-        StartElement padreStarElement = eventFactory.createStartElement("","", "personas");
-        eventWriter.add(padreStarElement);
-        eventWriter.add(end);
-        
-        for(Persona person : datosPersona) {
-        	StartElement configStartElement = eventFactory.createStartElement("","", "persona");
-        	
-        	eventWriter.add(configStartElement);
-        	eventWriter.add(end);
-        	
-        	createNode(eventWriter, "nombre", person.getNombre());
-        	createNode(eventWriter, "apellidos", person.getApellidos());
-        	createNode(eventWriter, "direccion", person.getDireccion());
-        	createNode(eventWriter, "codigopostal", String.valueOf(person.getCodigoPostal()));
-        	createNode(eventWriter, "ciudad", person.getCiudad());
-        	
-        	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        	String formatoFecha = person.getFechaDeNacimiento().format(formatter);
-        	createNode(eventWriter, "fechanacimiento", formatoFecha);
-        	
-        	EndElement configEndElemnt = eventFactory.createEndElement("","", "persona");
-        	eventWriter.add(configEndElemnt);
-        	eventWriter.add(end);
-        	
-        	
+    public void guardarPersonas(File archivo){
+
+        List<Persona> listaPersonas = getDatosPersona();
+
+
+
+        try {
+            XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
+            StringWriter stringWriter = new StringWriter();
+            XMLStreamWriter xMLStreamWriter = xMLOutputFactory.createXMLStreamWriter(new FileOutputStream(archivo));
+
+            xMLStreamWriter.writeStartDocument();
+            xMLStreamWriter.writeStartElement("personas");
+
+
+            for(Persona p : listaPersonas) {
+                xMLStreamWriter.writeStartElement("persona");
+                xMLStreamWriter.writeStartElement("fechaDeNacimiento");
+                xMLStreamWriter.writeCharacters(String.valueOf(p.getFechaDeNacimiento()));
+                xMLStreamWriter.writeEndElement();
+                xMLStreamWriter.writeStartElement("ciudad");
+                xMLStreamWriter.writeCharacters(p.getCiudad());
+                xMLStreamWriter.writeEndElement();
+                xMLStreamWriter.writeStartElement("nombre");
+                xMLStreamWriter.writeCharacters(p.getNombre());
+                xMLStreamWriter.writeEndElement();
+                xMLStreamWriter.writeStartElement("apellidos");
+                xMLStreamWriter.writeCharacters(p.getApellidos());
+                xMLStreamWriter.writeEndElement();
+                xMLStreamWriter.writeStartElement("codigoPostal");
+                xMLStreamWriter.writeCharacters(String.valueOf(p.getCodigoPostal()));
+                xMLStreamWriter.writeEndElement();
+                xMLStreamWriter.writeStartElement("direccion");
+                xMLStreamWriter.writeCharacters(p.getDireccion());
+                xMLStreamWriter.writeEndElement();
+                xMLStreamWriter.writeEndElement();
+            }
+
+            xMLStreamWriter.writeEndDocument();
+            xMLStreamWriter.flush();
+            xMLStreamWriter.close();
+            //setRutaArchivoPersonas(archivo);
+
+        }catch (XMLStreamException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        eventWriter.add(eventFactory.createEndDocument());
-        eventWriter.close();
-        //Guardar en la base de datos
-        conexionSql.putPersonas(datosPersona);
-    }
-
-    private void createNode(XMLEventWriter eventWriter, String name, String value) throws XMLStreamException {
-
-        XMLEventFactory eventFactory = XMLEventFactory.newInstance();
-        XMLEvent end = eventFactory.createDTD("\n");
-        XMLEvent tab = eventFactory.createDTD("\t");
-        // create Start node
-        StartElement sElement = eventFactory.createStartElement("", "", name);
-        eventWriter.add(tab);
-        eventWriter.add(sElement);
-        // create Content
-        Characters characters = eventFactory.createCharacters(value);
-        eventWriter.add(characters);
-        // create End node
-        EndElement eElement = eventFactory.createEndElement("", "", name);
-        eventWriter.add(eElement);
-        eventWriter.add(end);
-
     }
     
     public void listarPersonas() {
+    	String reportFuente = "C:\\Users\\Ceci\\JaspersoftWorkspace\\MyReports\\Leaf_Red.jrxml";
+    	String reportPDF = "src/informes/Informe.pdf";
     	
+    	Map<String, Object> parametros = new HashMap<String, Object>();
+    	/*
+		parametros.put("titulo", "LISTADO DE DEPARTAMENTOS.");
+		parametros.put("autor", "Jose");
+		parametros.put("fecha", (new java.util.Date()).toString());*/
+    	
+    	try {
+    		 //Compilar la plantilla
+    		 JasperReport jasperReportCompilado = JasperCompileManager.compileReport(reportFuente);
+
+             conexionSql = new ConexionSql("jdbc:mysql://127.0.0.1:3306/dam?useSSL=false", "dam", "dam");
+
+    		 Connection conexion = conexionSql.devolverConecxion();
+    		 //Metodo para rellenar de datos el informe, genera un fichero .jrprint
+    		 //parametros (nombre objeto Jaspert Report, parametros de informe, conexion a BD)
+    		 JasperPrint MiInforme = JasperFillManager.fillReport(jasperReportCompilado, parametros, conexion);
+
+             conexion.close();
+    		 /*Exportar el fichero JasperPrint*/
+    		 // Visualizar en pantalla(consola)
+    		 JasperViewer.viewReport(MiInforme);
+    		 // Convertir a PDF(generar informe en PDF)
+    		 JasperExportManager.exportReportToPdfFile(MiInforme, reportPDF);
+    		 System.out.println("ARCHIVOS CREADOS");
+    		 
+    		 } catch (SQLException e) {
+    		 System.out.println("Error al ejecutar sentencia SQL");
+    		 } catch (JRException ex) {
+    		 System.out.println("Error Jasper.");
+    		 ex.printStackTrace();
+    		 }
+    		 
     }
     
     //Invoco el método getPrimaryStage para que devuelva mi escenario pñrincipal

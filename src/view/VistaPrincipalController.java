@@ -40,6 +40,11 @@ public class VistaPrincipalController {
 	}
 	
 	@FXML
+	public void crearInforme() {
+		libretaDirecciones.listarPersonas();
+	}
+	
+	@FXML
 	public void guardarComo() {
 		FileChooser fileChooser = new FileChooser();
 		
